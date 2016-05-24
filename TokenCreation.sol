@@ -126,17 +126,6 @@ contract TokenCreation is TokenCreationInterface, Token {
     }
 
     function divisor() constant returns (uint divisor) {
-        // The number of (base unit) tokens per wei is calculated
-        // as `msg.value` * 20 / `divisor`
-        // The fueling period starts with a 1:1 ratio
-        if (closingTime - 2 weeks > now) {
             return 20;
-        // Followed by 10 days with a daily creation rate increase of 5%
-        } else if (closingTime - 4 days > now) {
-            return (20 + (now - (closingTime - 2 weeks)) / (1 days));
-        // The last 4 days there is a constant creation rate ratio of 1:1.5
-        } else {
-            return 30;
-        }
     }
 }

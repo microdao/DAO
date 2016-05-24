@@ -30,16 +30,16 @@ contract DAOInterface {
     // creation by calling the fallback function will still get their ether back
     uint constant creationGracePeriod = 40 days;
     // The minimum debate period that a generic proposal can have
-    uint constant minProposalDebatePeriod = 2 weeks;
+    uint constant minProposalDebatePeriod = 3 days;
     // The minimum debate period that a split proposal can have
-    uint constant minSplitDebatePeriod = 1 weeks;
+    uint constant minSplitDebatePeriod = 0 days;
     // Period of days inside which it's possible to execute a DAO split
-    uint constant splitExecutionPeriod = 27 days;
+    uint constant splitExecutionPeriod = 1 days;
     // Period of time after which the minimum Quorum is halved
-    uint constant quorumHalvingPeriod = 25 weeks;
+    uint constant quorumHalvingPeriod = 2 weeks;
     // Period after which a proposal is closed
     // (used in the case `executeProposal` fails because it throws)
-    uint constant executeProposalPeriod = 10 days;
+    uint constant executeProposalPeriod = 2 days;
     // Denotes the maximum proposal deposit that can be given. It is given as
     // a fraction of total Ether spent plus balance of the DAO
     uint constant maxDepositDivisor = 100;
@@ -142,7 +142,7 @@ contract DAOInterface {
         // Amount of Reward Tokens owned by the DAO at the time of split.
         uint rewardToken;
         // The new DAO contract created at the time of split.
-        DAO newDAO;
+        MICRODAO newDAO;
     }
 
     // Used to restrict access to certain functions to only DAO Token Holders
@@ -166,7 +166,7 @@ contract DAOInterface {
         //  uint _proposalDeposit,
         //  uint _minTokensToCreate,
         //  uint _closingTime,
-        //  address _privateCreation
+        //  addresses _privateCreation
     //  );
 
     /// @notice Create Token with `msg.sender` as the beneficiary
@@ -343,7 +343,7 @@ contract DAOInterface {
 }
 
 // The DAO contract itself
-contract DAO is DAOInterface, Token, TokenCreation {
+contract MICRODAO is DAOInterface, Token, TokenCreation {
 
     // Modifier that allows only shareholders to vote and create new proposals
     modifier onlyTokenholders {
@@ -351,7 +351,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             _
     }
 
-    function DAO(
+    function MICRODAO(
         address _curator,
         DAO_Creator _daoCreator,
         uint _proposalDeposit,
@@ -404,8 +404,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
             _amount != 0
             || _transactionData.length != 0
             || _recipient == curator
-            || msg.value > 0
-            || _debatingPeriod < minSplitDebatePeriod)) {
+            || msg.value > 0)) {
             throw;
         } else if (
             !_newCurator
@@ -691,7 +690,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
 
 
     function retrieveDAOReward(bool _toMembers) external noEther returns (bool _success) {
-        DAO dao = DAO(msg.sender);
+        MICRODAO dao = MICRODAO(msg.sender);
 
         if ((rewardToken[msg.sender] * DAOrewardAccount.accumulatedInput()) /
             totalRewardToken < DAOpaidOut[msg.sender])
@@ -856,7 +855,7 @@ contract DAO is DAOInterface, Token, TokenCreation {
         }
     }
 
-    function createNewDAO(address _newCurator) internal returns (DAO _newDAO) {
+    function createNewDAO(address _newCurator) internal returns (MICRODAO _newDAO) {
         NewCurator(_newCurator);
         return daoCreator.createDAO(_newCurator, 0, 0, now + splitExecutionPeriod);
     }
@@ -893,9 +892,9 @@ contract DAO_Creator {
         uint _proposalDeposit,
         uint _minTokensToCreate,
         uint _closingTime
-    ) returns (DAO _newDAO) {
+    ) returns (MICRODAO _newDAO) {
 
-        return new DAO(
+        return new MICRODAO(
             _curator,
             DAO_Creator(this),
             _proposalDeposit,
